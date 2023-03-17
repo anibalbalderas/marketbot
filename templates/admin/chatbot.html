@@ -1,0 +1,19 @@
+{% include 'admin/templates/header.html' %}
+<body>
+<div class="chatbot">
+    <div class="chatbot__container">
+        <div class="chatbot__chat">
+            {% for c in chat %}
+                <p>{{ c }}</p>
+            {% endfor %}
+        </div>
+        <div class="chatbot__questions">
+            <form method="post" class="chatbot__label">
+                <input type="text" name="question" placeholder="Question" class="chatbot__input">
+                <button type="submit" class="chatbot__button">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+{% include 'admin/templates/footer.html' %}

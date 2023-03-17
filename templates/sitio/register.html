@@ -1,0 +1,29 @@
+{% include 'sitio/templates/header.html' %}
+<body>
+<div class="form-cont">
+    <div class="form glass-effect">
+        <form action="/register" method="post" id="form">
+        <h1 class="login-title">Register</h1>
+        <label>
+            <input type="text" class="login-input" name="username" placeholder="Username" autofocus="true" id="username">
+        <small></small>
+        </label>
+        <label>
+            <input type="text" class="login-input" name="email" placeholder="E-mail" id="email">
+            <small></small>
+        </label>
+        <label>
+            <input type="password" class="login-input" name="password" placeholder="Password" id="password">
+            <small></small>
+        </label>
+        <label>
+            <input type="password" class="login-input" name="password2" placeholder="Repeat the Password" id="password2">
+            <small></small>
+        </label>
+        <button type="submit" class="login-button">Register</button>
+        <p class="link">you have an account <a href="/login">Log in</a></p>
+    </form>
+    </div>
+</div>
+</body>
+{% include 'sitio/templates/footer.html' %}

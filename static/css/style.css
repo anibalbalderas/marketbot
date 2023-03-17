@@ -1,0 +1,266 @@
+/* Variables */
+root {
+    --negro: #000;
+    --blanco: #fff;
+}
+/* Reset */
+
+html {
+    font-size: 62.5%;
+    box-sizing: border-box;
+}
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+body {
+    font-size: 1.6rem;
+    line-height: 1.8;
+}
+p {
+    color: var(--negro);
+    font-size: 2rem;
+    font-family: 'Montserrat', sans-serif;
+}
+.contenedor {
+    width: 95%;
+    max-width: 120rem;
+    margin: 0 auto;
+}
+
+a {
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+}
+
+img,
+picture {
+    width: 100%;
+    display: block;
+}
+
+h1, h2, h3 {
+    color: #66ccff;
+    font-weight: 300;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+}
+
+h1 {
+    font-size: 3.8rem;
+}
+h2 {
+    font-size: 3.4rem;
+}
+h3 {
+    font-size: 3rem;
+}
+h4 {
+    font-size: 2.6rem;
+}
+
+/* Index */
+header{
+    background-color: #0a0e13;
+}
+footer{
+    background-color: #0a0e13;
+}
+footer p{
+    color: #ffffff;
+    text-align: center;
+    padding: 1rem 0;
+    margin: 0;
+}
+footer a{
+    color: #66ccff;
+}
+.menu{
+    width: 80%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3rem 0;
+}
+.logo{
+    width: 25%;
+}
+.logo img{
+    width: 100%;
+}
+.menu__nav{
+    width: 60%;
+    display: flex;
+    justify-content: end;
+}
+.menu__nav a{
+    font-size: 2rem;
+    padding: 0 1rem;
+}
+.menu__nav a:hover{
+    color: #66ccff;
+}
+.menu__nav a:hover:last-child{
+    color: #ffffff;
+}
+.menu__link{
+    color: #ffffff;
+}
+.menu__link--active{
+    color: #66ccff;
+}
+.menu__link--active:last-child{
+    color: #ffffff;
+}
+@media (max-width: 768px){
+    .menu__nav{
+        display: none;
+    }
+    .menu__nav--active{
+        animation: menu 0.5s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        width: 50%;
+        background-color: #0a0e13;
+        z-index: 3;
+    }
+    .menu__nav--active a{
+        width: 70%;
+        display: flex;
+        font-size: 2rem;
+        padding: 1rem 0;
+        justify-content: center;
+    }
+    .menu__logo{
+        width: 80%;
+    }
+    .menu__logo img{
+        width: 60%;
+    }
+    .menu-btn{
+        display: block;
+        width: 10%;
+        cursor: pointer;
+        z-index: 4;
+    }
+    .menu-btn span{
+        display: block;
+        width: 70%;
+        height: 4px;
+        background: #ffffff;
+        transition: all 0.3s ease;
+        margin: 2px auto;
+    }
+}
+.login{
+    background-color: #66ccff;
+    color: white;
+    border-radius: 25px;
+}
+.form-cont{
+    background-image: url('../img/banner.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 89vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.form-cont::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0a0e13;
+    opacity: 0.85;
+}
+.form{
+    width: 80%;
+    max-width: 50rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+.glass-effect{
+    border-radius: 1rem;
+    border: 3px solid #fafafa10;
+    background: #fafafa10;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 2rem;
+    z-index: 2;
+}
+form{
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+form label{
+    width: 100%;
+    color: #ffffff;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+form input{
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    color: #ffffff;
+    background-color: #0a0e13;
+    position: relative;
+}
+form input::placeholder{
+    color: #ffffff;
+}
+form button{
+    cursor: pointer;
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    color: #ffffff;
+    background-color: #66ccff;
+}
+form p{
+    color: #ffffff;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+form p a{
+    color: #66ccff;
+}
+form input:focus {
+    outline: none;
+}
+small{
+    background-color: #0a0e13;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: -4.5rem 0;
+    width: 90%;
+    color: #ffffff;
+    cursor: pointer;
+}
+.success{
+    font-size: 0;
+}

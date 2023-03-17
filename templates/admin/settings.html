@@ -1,0 +1,59 @@
+{% include 'admin/templates/header.html' %}
+<body>
+<div class="settings__content">
+    <div class="settings__aside">
+        <div class="settings__menu">
+            <p>Settings</p>
+            <a id="api" class="settings__a">Api</a>
+            <a id="webpage" class="settings__a">Web-Page</a>
+            <a id="twilio" class="settings__a">Twilio</a>
+        </div>
+        <p>Version: 1.0</p>
+    </div>
+    <div class="settings__bside">
+        <div class="settings__pr settings__pr--active">
+            <h2>Welcome {{ session['username'] }}</h2>
+            <p>Here you can change the settings of the application</p>
+        </div>
+        <div class="settings__api settings__api-api">
+            <p>Open Ia - Api</p>
+            <form method="post" class="settings__form" action="/admin/settings/api">
+                <label class="settings__label">
+                    <p>Please enter your Api-Key</p>
+                    <input type="text" name="api" placeholder="Api">
+                </label>
+                <button type="submit" value="Save">Save</button>
+            </form>
+        </div>
+        <div class="settings__api settings__api-web">
+            <p>Web-Page</p>
+            <form method="post" class="settings__form" action="/admin/settings/web">
+                <label class="settings__label">
+                    <p>Please enter your Web-Page</p>
+                    <input type="text" name="web" placeholder="Web-Page">
+                </label>
+                <button type="submit" value="Save">Save</button>
+            </form>
+        </div>
+        <div class="settings__api settings__api-tw">
+            <p>Twilio Key</p>
+            <form method="post" class="settings__form" action="/admin/settings/tw">
+                <label class="settings__label">
+                    <p>Please enter your Twilio Key</p>
+                    <input type="text" name="twilio" placeholder="Twilio Key">
+                </label>
+                <label class="settings__label">
+                     <p>Please enter your Twilio SK</p>
+                    <input type="text" name="twsk" placeholder="Twilio SK">
+                </label>
+                <label class="settings__label">
+                     <p>Please enter your Twilio Number</p>
+                    <input type="text" name="numbertw" placeholder="Twilio Number">
+                </label>
+                <button type="submit" value="Save">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+{% include 'admin/templates/footer.html' %}
