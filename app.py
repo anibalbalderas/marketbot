@@ -1,4 +1,5 @@
 import openai
+import os
 import requests
 from flask import Flask
 from flask import render_template
