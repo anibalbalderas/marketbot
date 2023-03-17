@@ -285,6 +285,8 @@ def whatsapp():
     session['whatsapp'] = {'from_number': from_number, 'message': message}
     return 'OK'
 
-
+# obtener puerto #
+port = int(os.environ.get('PORT', 8080))
+# iniciar servidor #
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, host='localhost', port=port)
