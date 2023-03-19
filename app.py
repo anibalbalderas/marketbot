@@ -104,14 +104,7 @@ def chatbot():
         session['conversations'] = []
     message = []
     if 'whatsapp' in session:
-        message = request.form['message']
-        from_number = session['from_number']
-        client = Client(account_sid, auth_token)
-        message = client.messages.create(
-            body='hola',
-            from_=numbertw,
-            to=from_number
-        )
+        message = session['message']
     if request.form['question']:
         username = session['username']
         question = 'User: ' + request.form['question']
@@ -178,6 +171,14 @@ def chatbot():
         cur.execute("SELECT numbertw FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
         numbertw = cur.fetchone()
         cur.close()
+        if 'whatsapp' in session:
+        from_number = session['from_number']
+        client = Client(account_sid, auth_token)
+        message = client.messages.create(
+            body='hola',
+            from_=numbertw,
+            to=from_number
+        )
         # guardar preguntas y respuestas de el usuario #
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO conversations (username, question, answer) VALUES (%s, %s, %s)",
