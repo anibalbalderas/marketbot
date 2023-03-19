@@ -108,7 +108,7 @@ def chatbot():
         from_number = session['from_number']
         client = Client(account_sid, auth_token)
         message = client.messages.create(
-            body=answer,
+            body='hola',
             from_=numbertw,
             to=from_number
         )
