@@ -3,7 +3,8 @@ import os
 import requests
 from flask import Flask
 from flask import render_template
-from flaskext.mysql import MySQL
+from flask_mysqldb import MySQL
+from MySQLdb import _mysql
 from flask import session
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
