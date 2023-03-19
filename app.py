@@ -1,5 +1,3 @@
-import openai
-import os
 import requests
 from flask import Flask
 from flask import render_template
@@ -11,38 +9,25 @@ from werkzeug.security import generate_password_hash
 from flask import request
 from bs4 import BeautifulSoup
 from twilio.rest import Client
-
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # para poder usar sesiones
-
 app.config['MYSQL_HOST'] = 'gblm5z.stackhero-network.com'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'NDgFe0m8HhvCbWSEmfzrholpFqLYhbDc'
 app.config['MYSQL_DB'] = 'mbot'
-
 mysql = MySQL(app)
-
-
 @app.route('/')
 def index():
     return render_template('sitio/index.html')
-
-
 @app.route('/about')
 def about():
     return render_template('sitio/about.html')
-
-
 @app.route('/services')
 def services():
     return render_template('sitio/services.html')
-
-
 @app.route('/contact')
 def contact():
     return render_template('sitio/contact.html')
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -64,8 +49,6 @@ def login():
             session['logged'] = True
             return render_template('admin/index.html')
     return render_template('sitio/login.html')
-
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -80,21 +63,15 @@ def register():
         cur.close()
         return render_template('sitio/login.html')
     return render_template('sitio/register.html')
-
-
 @app.route('/logout')
 def logout():
     session.clear()
     return render_template('sitio/index.html')
-
-
 @app.route('/admin')
 def admin():
     if 'logged' in session:
         return render_template('admin/index.html')
     return render_template('sitio/index.html')
-
-
 @app.route('/admin/chatbot', methods=['POST', 'GET'])
 def chatbot():
     if request.method == 'GET':
@@ -104,7 +81,7 @@ def chatbot():
         session['conversations'] = []
     message = []
     if 'whatsapp' in session:
-        message = session['message']
+        message = request.form['message']
     if request.form['question']:
         username = session['username']
         question = 'User: ' + request.form['question']
@@ -172,13 +149,13 @@ def chatbot():
         numbertw = cur.fetchone()
         cur.close()
         if 'whatsapp' in session:
-        from_number = session['from_number']
-        client = Client(account_sid, auth_token)
-        message = client.messages.create(
-            body='hola',
-            from_=numbertw,
-            to=from_number
-        )
+            from_number = session['from_number']
+            client = Client(account_sid, auth_token)
+            message = client.messages.create(
+                body=answer,
+                from_=numbertw,
+                to=from_number
+            )
         # guardar preguntas y respuestas de el usuario #
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO conversations (username, question, answer) VALUES (%s, %s, %s)",
@@ -188,15 +165,11 @@ def chatbot():
         return render_template('admin/chatbot.html', chat=conversations, answer=answer)
     else:
         return render_template('admin/index.html')
-
-
 @app.route('/admin/settings', methods=['GET'])
 def settings():
     if 'logged' in session:
         return render_template('admin/settings.html')
     return render_template('sitio/index.html')
-
-
 @app.route('/admin/settings/api', methods=['POST'])
 def key():
     if 'logged' in session:
@@ -210,8 +183,6 @@ def key():
             cur.close()
             return render_template('admin/settings.html')
     return render_template('sitio/index.html')
-
-
 @app.route('/admin/settings/web', methods=['POST'])
 def web():
     if 'logged' in session:
@@ -244,12 +215,10 @@ def web():
                         base_url = url_parts[0] + '//' + url_parts[2] + '/'
                         full_url = base_url + href
                         urls.append(full_url)
-
             # Leer el texto de cada URL
             for url in urls:
                 response = requests.get(url, timeout=5)
                 text = BeautifulSoup(response.content, 'html.parser').get_text()
-
                 # guardar texto de la web #
                 cur = mysql.connection.cursor()
                 cur.execute("INSERT INTO sites (username, webpage, db) VALUES (%s, %s, %s)",
@@ -261,8 +230,6 @@ def web():
                     return render_template('admin/settings.html')
             return render_template('admin/settings.html')
     return render_template('sitio/index.html')
-
-
 @app.route('/admin/settings/tw', methods=['POST'])
 def tw():
     if 'logged' in session:
@@ -278,15 +245,12 @@ def tw():
         cur.close()
         return render_template('admin/settings.html')
     return render_template('sitio/index.html')
-
-
 @app.route('/whatsapp', methods=['POST'])
 def whatsapp():
     from_number = request.form['From']
     message = request.form['Body']
     session['whatsapp'] = {'from_number': from_number, 'message': message}
     return 'OK'
-
 # obtener puerto #
 port = int(os.environ.get('PORT', 8080))
 # iniciar servidor #
