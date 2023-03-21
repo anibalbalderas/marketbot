@@ -288,14 +288,10 @@ def whatsapp():
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
     data = {'question': message}
     r = requests.post(url, data=data)
-    answer = r.text
-    # traer solo el ultimo <p> #
-    answer = answer.split('</p>')[-2]
-    answer = answer.split('>')[-1]
-    # recibir informacion de la url #
+    print(r.text)
     message = client.messages.create(
         from_=numbertw,
-        body=answer,
+        body='hola',
         to=from_number
     )
     print(message.sid)
