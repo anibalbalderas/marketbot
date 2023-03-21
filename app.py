@@ -6,6 +6,7 @@ from flask import render_template
 from flask_mysqldb import MySQL
 from MySQLdb import _mysql
 from flask import session
+from openai.api_resources import answer
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 from flask import request
@@ -103,7 +104,9 @@ def chatbot():
     if 'conversations' not in session:
         session['conversations'] = []
     if request.form['question']:
-        username = session['username']
+        if 'username' in session:
+            username = session['username']
+        username = 'anibalderas'
         question = 'User: ' + request.form['question']
         questiondb = request.form['question']
         # leer key de openai #
@@ -256,7 +259,7 @@ def tw():
     return render_template('sitio/index.html')
 
 
-@app.route('/whatsapp', methods=['POST', 'GET'])
+@app.route('/whatsapp', methods=['POST'])
 def whatsapp():
     username = 'anibalderas'
     cur = mysql.connection.cursor()
@@ -281,13 +284,17 @@ def whatsapp():
     message = request.form['Body']
     account_sid = tw
     client = Client(account_sid, auth_token)
-
+    # enviar datos a ulr chatbot #
+    url = 'https://marketbot.herokuapp.com/admin/chatbot'
+    data = {'question': message}
+    r = requests.post(url, data=data)
+    print(r.text)
+    # recibir informacion de la url #
     message = client.messages.create(
         from_=numbertw,
-        body='Que onda pa',
+        body=r.text,
         to=from_number
     )
-
     print(message.sid)
     return 'OK'
 
