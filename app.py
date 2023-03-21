@@ -103,11 +103,8 @@ def chatbot():
     if 'conversations' not in session:
         session['conversations'] = []
     if request.form['question']:
-        if 'username' in session:
-            username = session['username']
-            from_number = session['from_number']
-        else:
-            username = 'anibalderas'
+        username = request.form['username']
+        from_number = request.form['from_number']
         question = 'User: ' + request.form['question']
         questiondb = request.form['question']
         # leer key de openai #
@@ -284,20 +281,14 @@ def tw():
 
 @app.route('/whatsapp', methods=['POST'])
 def whatsapp():
-    # gaurdar en session el numero de whatsapp #
-    session['number'] = request.form['From']
     from_number = request.form['From']
-    # gaurdar en session el mensaje de whatsapp #
-    session['number'] = request.form['Body']
     message = request.form['Body']
-    # gaurdar en session el nombre de usuario #
-    session['username'] = 'anibalderas'
     username = session['username']
     # enviar datos a ulr chatbot #
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
-    data = {'question': message}
+    data = {'question': message, 'from_number': from_number, 'username': username}
     # enviar datos a la url #
-    requests.post(url, data=data, cookies=session)
+    requests.post(url, data=data)
     return 'OK'
 
 
