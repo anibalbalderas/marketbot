@@ -81,11 +81,8 @@ footer a{
     align-items: center;
     padding: 3rem 0;
 }
-.logo{
+.menu__logo{
     width: 25%;
-}
-.logo img{
-    width: 100%;
 }
 .menu__nav{
     width: 70%;
