@@ -258,10 +258,14 @@ def tw():
 
 @app.route('/whatsapp', methods=['POST'])
 def whatsapp():
+    username = 'anibalderas'
     from_number = request.form['From']
     message = request.form['Body']
     account_sid = 'ACac5193119aea7d7da5c5e9ccb14bc77e'
-    auth_token = 'cf40a4f363a4d4327a9dc4f6beb1d247'
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+    auth_token = cur.fetchone()
+    cur.close()
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
