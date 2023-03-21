@@ -102,9 +102,6 @@ def chatbot():
     conversations = []
     if 'conversations' not in session:
         session['conversations'] = []
-    message = []
-    if 'whatsapp' in session:
-        message = request.form['message']
     if request.form['question']:
         username = session['username']
         question = 'User: ' + request.form['question']
@@ -158,27 +155,6 @@ def chatbot():
         answer = response['choices'][0]['text']
         conversations.append(question)
         conversations.append(answer)
-        # enviar mensaje por whatsapp #
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT twillio FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-        account_sid = cur.fetchone()
-        cur.close()
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-        auth_token = cur.fetchone()
-        cur.close()
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT numbertw FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-        numbertw = cur.fetchone()
-        cur.close()
-        if 'whatsapp' in session:
-            from_number = session['from_number']
-            client = Client(account_sid, auth_token)
-            message = client.messages.create(
-                body=answer,
-                from_=numbertw,
-                to=from_number
-            )
         # guardar preguntas y respuestas de el usuario #
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO conversations (username, question, answer) VALUES (%s, %s, %s)",
@@ -284,7 +260,17 @@ def tw():
 def whatsapp():
     from_number = request.form['From']
     message = request.form['Body']
-    session['whatsapp'] = {'from_number': from_number, 'message': message}
+    account_sid = 'ACac5193119aea7d7da5c5e9ccb14bc77e'
+    auth_token = 'cf40a4f363a4d4327a9dc4f6beb1d247'
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        from_='whatsapp:+14155238886',
+        body='Your appointment is coming up on July 21 at 3PM',
+        to='whatsapp:+5218122094187'
+    )
+
+    print(message.sid)
     return 'OK'
 
 
