@@ -99,17 +99,15 @@ def admin():
 def chatbot():
     if request.method == 'GET':
         return render_template('admin/chatbot.html')
+    if 'logged' in session:
+        username = session['username']
+        from_number = '+528122094187'
+    else:
+        username = request.form['username']
+        from_number = request.form['from_number']
     conversations = []
     if 'conversations' not in session:
         session['conversations'] = []
-    if request.form['from_number']:
-        from_number = request.form['from_number']
-    else:
-        from_number = '+528122094187'
-    if request.form['username']:
-        username = request.form['username']
-    else:
-        username = 'anibalderas'
     if request.form['question']:
         question = 'User: ' + request.form['question']
         questiondb = request.form['question']
