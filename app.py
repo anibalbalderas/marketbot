@@ -101,7 +101,7 @@ def chatbot():
         return render_template('admin/chatbot.html')
     if 'logged' in session:
         username = session['username']
-        from_number = '+528122094187'
+        from_number = 'whatsapp:+528122094187'
     else:
         username = request.form['username']
         from_number = request.form['from_number']
