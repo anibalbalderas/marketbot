@@ -256,16 +256,18 @@ def tw():
     return render_template('sitio/index.html')
 
 
-@app.route('/whatsapp', methods=['POST'])
+@app.route('/whatsapp', methods=['POST', 'GET'])
 def whatsapp():
     username = 'anibalderas'
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+    data = cur.fetchone()
+    cur.close()
+    auth_token = data[0]
+    print(auth_token)
     from_number = request.form['From']
     message = request.form['Body']
     account_sid = 'ACac5193119aea7d7da5c5e9ccb14bc77e'
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-    auth_token = cur.fetchone()
-    cur.close()
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
