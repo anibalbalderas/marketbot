@@ -1,3 +1,4 @@
+from datetime import time
 import openai
 import os
 import requests
@@ -261,6 +262,8 @@ def tw():
 @app.route('/whatsapp', methods=['POST'])
 def whatsapp():
     username = 'anibalderas'
+    from_number = request.form['From']
+    message = request.form['Body']
     cur = mysql.connection.cursor()
     cur.execute("SELECT twillio FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
     data = cur.fetchone()
@@ -276,20 +279,22 @@ def whatsapp():
     data = cur.fetchone()
     cur.close()
     numbertw = data[0]
-    from_number = request.form['From']
-    message = request.form['Body']
     account_sid = tw
     client = Client(account_sid, auth_token)
     # enviar datos a ulr chatbot #
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
     data = {'question': message}
     r = requests.post(url, data=data)
-    # traer respuesta del chatbot #
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-    data = cur.fetchone()
-    cur.close()
-    answer = data[0]
+    # esperar respuesta del chatbot #
+    while True:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+        data = cur.fetchone()
+        cur.close()
+        if data is not None:
+            answer = data[0]
+            break
+        time.sleep(1)  # esperar un segundo antes de volver a comprobar la respuesta
     # enviar mensaje #
     message = client.messages.create(
         from_=numbertw,
