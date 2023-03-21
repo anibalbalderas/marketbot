@@ -103,8 +103,10 @@ def chatbot():
     if 'conversations' not in session:
         session['conversations'] = []
     if request.form['question']:
-        username = request.form['username']
-        from_number = request.form['from_number']
+        if request.form['username'] == '':
+            return render_template('admin/chatbot.html')
+        if request.form['from_number'] == '':
+            return render_template('admin/chatbot.html')
         question = 'User: ' + request.form['question']
         questiondb = request.form['question']
         # leer key de openai #
