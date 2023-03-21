@@ -102,15 +102,15 @@ def chatbot():
     conversations = []
     if 'conversations' not in session:
         session['conversations'] = []
+    if request.form['from_number']:
+        from_number = request.form['from_number']
+    else:
+        from_number = '+528122094187'
+    if request.form['username']:
+        username = request.form['username']
+    else:
+        username = 'anibalderas'
     if request.form['question']:
-        if request.form['from_number']:
-            from_number = request.form['from_number']
-        else:
-            from_number = '+528122094187'
-        if request.form['username']:
-            username = request.form['username']
-        else:
-            username = 'anibalderas'
         question = 'User: ' + request.form['question']
         questiondb = request.form['question']
         # leer key de openai #
