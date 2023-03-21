@@ -289,6 +289,14 @@ def whatsapp():
     data = {'question': message}
     r = requests.post(url, data=data)
     print(r.text)
+    # traer respuesta del chatbot #
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+    data = cur.fetchone()
+    cur.close()
+    answer = data[0]
+    print(answer)
+    # enviar mensaje #
     message = client.messages.create(
         from_=numbertw,
         body='hola',
