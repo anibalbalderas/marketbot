@@ -288,10 +288,10 @@ def whatsapp():
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
     data = {'question': message}
     r = requests.post(url, data=data)
-    # traer div de la url #
-    soup = BeautifulSoup(r.text, 'html.parser')
-    print(soup.find('div', {'class': 'answer'}))
-    answer = soup.find('div', {'class': 'answer'})
+    answer = r.text
+    # traer solo el ultimo <p> #
+    answer = answer.split('</p>')[-2]
+    answer = answer.split('>')[-1]
     # recibir informacion de la url #
     message = client.messages.create(
         from_=numbertw,
