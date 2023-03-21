@@ -103,7 +103,9 @@ def chatbot():
     if 'conversations' not in session:
         session['conversations'] = []
     if request.form['username'] == '' and request.form['from_number'] == '':
+        request.form['username'] = 'anibalderas'
         username = 'anibalderas'
+        request.form['from_number'] = '+528122094187'
         from_number = '+528122094187'
     if request.form['question']:
         if request.form['username']:
