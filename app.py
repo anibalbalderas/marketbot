@@ -141,7 +141,7 @@ def chatbot():
         # eliminar palabras iguales #
         textsite = ' '.join(dict.fromkeys(textsite.split()))
         # generar pregunta #
-        prompt = f"{pyr}\n{textsite}\n{question}\n{message}\n"
+        prompt = f"{pyr}\n{textsite}\n{question}\n"
         # generar respuesta #
         response = openai.Completion.create(
             engine="text-davinci-003",
@@ -260,20 +260,32 @@ def tw():
 def whatsapp():
     username = 'anibalderas'
     cur = mysql.connection.cursor()
+    cur.execute("SELECT twillio FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+    data = cur.fetchone()
+    cur.close()
+    tw = data[0]
+    print(tw)
+    cur = mysql.connection.cursor()
     cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
     data = cur.fetchone()
     cur.close()
     auth_token = data[0]
     print(auth_token)
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT numbertw FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+    data = cur.fetchone()
+    cur.close()
+    numbertw = data[0]
+    print(numbertw)
     from_number = request.form['From']
     message = request.form['Body']
-    account_sid = 'ACac5193119aea7d7da5c5e9ccb14bc77e'
+    account_sid = tw
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
-        from_='whatsapp:+14155238886',
-        body='Your appointment is coming up on July 21 at 3PM',
-        to='whatsapp:+5218122094187'
+        from_=numbertw,
+        body='Que onda pa',
+        to=from_number
     )
 
     print(message.sid)
