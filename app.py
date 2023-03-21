@@ -105,8 +105,10 @@ def chatbot():
     if request.form['question']:
         if request.form['username'] == '':
             return render_template('admin/chatbot.html')
+        username = request.form['username']
         if request.form['from_number'] == '':
             return render_template('admin/chatbot.html')
+        from_number = request.form['from_number']
         question = 'User: ' + request.form['question']
         questiondb = request.form['question']
         # leer key de openai #
@@ -285,7 +287,7 @@ def tw():
 def whatsapp():
     from_number = request.form['From']
     message = request.form['Body']
-    username = session['username']
+    username = 'anibalderas'
     # enviar datos a ulr chatbot #
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
     data = {'question': message, 'from_number': from_number, 'username': username}
