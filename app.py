@@ -1,4 +1,3 @@
-from datetime import time
 import openai
 import os
 import requests
@@ -158,6 +157,29 @@ def chatbot():
         answer = response['choices'][0]['text']
         conversations.append(question)
         conversations.append(answer)
+        # enviar mensaje #
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT twillio FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+        data = cur.fetchone()
+        cur.close()
+        account_sid = data[0]
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+        data = cur.fetchone()
+        cur.close()
+        auth_token = data[0]
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT numbertw FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+        data = cur.fetchone()
+        cur.close()
+        numbertw = data[0]
+        from_number = session['from_number']
+        client = Client(account_sid, auth_token)
+        message = client.messages.create(
+            from_=numbertw,
+            body=answer,
+            to=from_number
+        )
         # guardar preguntas y respuestas de el usuario #
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO conversations (username, question, answer) VALUES (%s, %s, %s)",
@@ -261,46 +283,18 @@ def tw():
 
 @app.route('/whatsapp', methods=['POST'])
 def whatsapp():
-    username = 'anibalderas'
+    # gaurdar en session el numero de whatsapp #
+    session['number'] = request.form['From']
     from_number = request.form['From']
+    # gaurdar en session el mensaje de whatsapp #
+    session['number'] = request.form['Body']
     message = request.form['Body']
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT twillio FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-    data = cur.fetchone()
-    cur.close()
-    tw = data[0]
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-    data = cur.fetchone()
-    cur.close()
-    auth_token = data[0]
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT numbertw FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-    data = cur.fetchone()
-    cur.close()
-    numbertw = data[0]
-    account_sid = tw
-    client = Client(account_sid, auth_token)
+    session['username'] = 'anibalderas'
+    username = session['username']
     # enviar datos a ulr chatbot #
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
-    data = {'question': message}
-    r = requests.post(url, data=data)
-    # esperar respuesta del chatbot #
-    while True:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
-        data = cur.fetchone()
-        cur.close()
-        if data is not None:
-            answer = data[0]
-            break
-        time.sleep(1)  # esperar un segundo antes de volver a comprobar la respuesta
-    # enviar mensaje #
-    message = client.messages.create(
-        from_=numbertw,
-        body=answer,
-        to=from_number
-    )
+    data = {'question': message, session['username']: username, session['from_number']: from_number}
+    requests.post(url, data=data)
     return 'OK'
 
 
