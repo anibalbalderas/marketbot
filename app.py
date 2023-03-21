@@ -296,7 +296,8 @@ def whatsapp():
     # enviar datos a ulr chatbot #
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
     data = {'question': message}
-    requests.post(url, data=data)
+    # enviar datos a la url #
+    requests.post(url, data=data, cookies=session)
     return 'OK'
 
 
