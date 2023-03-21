@@ -6,7 +6,6 @@ from flask import render_template
 from flask_mysqldb import MySQL
 from MySQLdb import _mysql
 from flask import session
-from openai.api_resources import answer
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 from flask import request
@@ -267,19 +266,16 @@ def whatsapp():
     data = cur.fetchone()
     cur.close()
     tw = data[0]
-    print(tw)
     cur = mysql.connection.cursor()
     cur.execute("SELECT twsk FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
     data = cur.fetchone()
     cur.close()
     auth_token = data[0]
-    print(auth_token)
     cur = mysql.connection.cursor()
     cur.execute("SELECT numbertw FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
     data = cur.fetchone()
     cur.close()
     numbertw = data[0]
-    print(numbertw)
     from_number = request.form['From']
     message = request.form['Body']
     account_sid = tw
@@ -288,21 +284,18 @@ def whatsapp():
     url = 'https://marketbot.herokuapp.com/admin/chatbot'
     data = {'question': message}
     r = requests.post(url, data=data)
-    print(r.text)
     # traer respuesta del chatbot #
     cur = mysql.connection.cursor()
     cur.execute("SELECT answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
     data = cur.fetchone()
     cur.close()
     answer = data[0]
-    print(answer)
     # enviar mensaje #
     message = client.messages.create(
         from_=numbertw,
-        body='hola',
+        body=answer,
         to=from_number
     )
-    print(message.sid)
     return 'OK'
 
 
