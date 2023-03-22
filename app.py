@@ -5,7 +5,6 @@ import requests
 from flask import Flask
 from flask import render_template
 from flask_mysqldb import MySQL
-from MySQLdb import _mysql
 from flask import session
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
@@ -20,6 +19,8 @@ app.config['MYSQL_HOST'] = 'gblm5z.stackhero-network.com'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'NDgFe0m8HhvCbWSEmfzrholpFqLYhbDc'
 app.config['MYSQL_DB'] = 'mbot'
+app.config['MYSQL_PORT'] = 3306
+app.config["MYSQL_CUSTOM_OPTIONS"] = {"ssl": "false"}
 
 mysql = MySQL(app)
 
@@ -125,8 +126,9 @@ def chatbot():
         pyr = cur.fetchall()
         cur.close()
         cur = mysql.connection.cursor()
-        cur.execute("SELECT db FROM sites WHERE username = %s AND db REGEXP %s", (username, '|'.join(questiondb.split())))
-        textsite = cur.fetchone()
+        cur.execute("SELECT db FROM sites WHERE username = %s AND db REGEXP %s",
+                    (username, '|'.join(questiondb.split())))
+        textsite = cur.fetchall()
         cur.close()
         # Convertir a string y eliminar palabras iguales
         textsite = str(textsite)
@@ -141,12 +143,11 @@ def chatbot():
         textsite = ' '.join([w for w in textsite.split() if len(w) > 3])
         # quitar palabras de mas de 15 letras #
         textsite = ' '.join([w for w in textsite.split() if len(w) < 15])
-        print(textsite)
         # generar pregunta #
         prompt = f"{textsite}\n{pyr}\n{question}\n"
         # generar respuesta #
         response = openai.Completion.create(
-            model="gpt-3.5-turbo",
+            model='text-davinci-003',
             prompt=prompt,
             temperature=0.3,
             max_tokens=150,
