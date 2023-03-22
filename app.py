@@ -1,4 +1,5 @@
 import openai
+import re
 import os
 import requests
 from flask import Flask
@@ -119,37 +120,33 @@ def chatbot():
         openai.api_key = key[0]
         # leer ultimas preguntas y respuestas #
         cur = mysql.connection.cursor()
-        cur.execute("SELECT question, answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 10",
+        cur.execute("SELECT question, answer FROM conversations WHERE username = %s ORDER BY id DESC LIMIT 5",
                     (username,))
         pyr = cur.fetchall()
         cur.close()
-        # traer solo los row de el usuario que contenga la palabra clave #
         cur = mysql.connection.cursor()
-        cur.execute("SELECT db FROM sites WHERE username = %s", (username,))
-        textsite = cur.fetchall()
+        cur.execute("SELECT db FROM sites WHERE username = %s AND db REGEXP %s", (username, '|'.join(questiondb.split())))
+        textsite = cur.fetchone()
         cur.close()
-        # convertir a string #
+        # Convertir a string y eliminar palabras iguales
         textsite = str(textsite)
         # quitar /n y /t #
         textsite = textsite.replace('\\n', ' ')
-        # quitar caracteres especiales #
         textsite = textsite.replace('\\t', ' ')
-        textsite = textsite.replace('\\', '')
-        textsite = textsite.replace('(', '')
-        textsite = textsite.replace(')', '')
-        textsite = textsite.replace(',', '')
-        textsite = textsite.replace("'", '')
-        textsite = textsite.replace('[', '')
-        textsite = textsite.replace(']', '')
-        # dejar 1 espacio entre palabras #
-        textsite = ' '.join(textsite.split())
-        # eliminar palabras iguales #
+        # quitar espacios dobles #
+        textsite = re.sub(' +', ' ', textsite)
+        # quitar palabras repetidas #
         textsite = ' '.join(dict.fromkeys(textsite.split()))
+        # quitar palabras de menos de 3 letras #
+        textsite = ' '.join([w for w in textsite.split() if len(w) > 3])
+        # quitar palabras de mas de 15 letras #
+        textsite = ' '.join([w for w in textsite.split() if len(w) < 15])
+        print(textsite)
         # generar pregunta #
-        prompt = f"{pyr}\n{textsite}\n{question}\n"
+        prompt = f"{textsite}\n{pyr}\n{question}\n"
         # generar respuesta #
         response = openai.Completion.create(
-            engine="text-davinci-003",
+            model="gpt-3.5-turbo",
             prompt=prompt,
             temperature=0.3,
             max_tokens=150,
