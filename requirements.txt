@@ -13,3 +13,4 @@ Jinja2==3.0.3
 MarkupSafe==2.1.1
 zipp==3.6.0
 flask_mysqldb
+sendgrid==6.8.0

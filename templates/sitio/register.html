@@ -4,6 +4,9 @@
     <div class="form glass-effect">
         <form action="/register" method="post" id="form">
         <h1 class="login-title">Register</h1>
+            <div class="alert alert-danger" role="alert">
+                <p>{{ error }}</p>
+            </div>
         <label>
             <input type="text" class="login-input" name="username" placeholder="Username" autofocus="true" id="username">
         <small></small>

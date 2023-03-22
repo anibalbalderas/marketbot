@@ -1,5 +1,63 @@
 {% include 'admin/templates/header.html' %}
 <body>
-    <h1>Admin</h1>
+<div class="contenedor">
+    <div class="admin">
+        <div class="admin__info">
+            <h2>What is marketbot</h2>
+            <p>Marketbot is a platform that allows us to automate many of the processes that we have today in our company, such as: WhatsApp messages, Google campaign automation, blog posts with keywords and good SEO and new customer acquisition.</p>
+        </div>
+        <div class="admin__img">
+            <img src="{{ url_for('static', filename='img/20945602.jpg') }}" alt="admin">
+        </div>
+        <div class="admin__img">
+            <img src="{{ url_for('static', filename='img/Artboard1.png') }}" alt="admin">
+        </div>
+        <div class="admin__info">
+            <h2>WhatsApp Bot</h2>
+            <p>Right now the automation of messages through WhatsApp is available, you can configure it in the settings area in the menu above.</p>
+            <p>This allows us to enter a URL and the code will read all the information on the page, then based on that, any user who asks a question on WhatsApp will be provided with information about your company or products on your page.</p>
+        </div>
+    </div>
+</div>
+<div class="releases__content">
+    <h2>Releases</h2>
+    <div class="releases">
+        <a href="">
+            <div class="release">
+            <h2>Release 1.0</h2>
+            <img src="{{ url_for('static', filename='img/Artboard1.png') }}" alt="admin">
+            <p>First release of the platform, with the WhatsApp bot automation.</p>
+        </div>
+        </a>
+    </div>
+</div>
+<div class="news">
+    <div class="contenedor">
+        <h2 class="features__h2">Upcoming features</h2>
+        <div class="upcoming__features">
+
+        </div>
+        <div class="contact">
+            <h2>Contact us</h2>
+            <div class="form-contact">
+                <form class="contact__form" id="formContact" method="post">
+                    <label class="contact__label">
+                        <input type="text" placeholder="Name" id="nameContact" name="name">
+                        <small></small>
+                    </label>
+                    <label class="contact__label">
+                        <input type="email" placeholder="Email" id="emailContact" name="email">
+                        <small></small>
+                    </label>
+                    <label class="contact__text">
+                        <textarea name="textarea" id="textareaContact" cols="30" rows="10" placeholder="Message"></textarea>
+                        <small></small>
+                    </label>
+                    <input class="contact__button" type="submit" value="Send" id="sendContact">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 {% include 'admin/templates/footer.html' %}

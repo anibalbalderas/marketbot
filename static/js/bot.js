@@ -191,5 +191,57 @@ if (settingsTwilio) {
     })
 }
 
+// verificar que el formulario de contacto no este vacio //
+const formContact = document.getElementById('formContact');
+const nameContact = document.getElementById('nameContact');
+const emailContact = document.getElementById('emailContact');
+const messageContact = document.getElementById('textareaContact');
 
+if (formContact) {
+    formContact.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        checkInputsContact();
+    });
+}
+
+function checkInputsContact() {
+    const nameContactValue = nameContact.value.trim();
+    const emailContactValue = emailContact.value.trim();
+    const messageContactValue = messageContact.value.trim();
+
+    if(nameContactValue === '') {
+        setErrorForContact(nameContact, 'El nombre no puede estar vacio');
+    } else {
+        setSuccessForContact(nameContact);
+    }
+
+    if(emailContactValue === '') {
+        setErrorForContact(emailContact, 'El email no puede estar vacio');
+    } else if (!isEmail(emailContactValue)) {
+        setErrorForContact(emailContact, 'No es un email valido');
+    } else {
+        setSuccessForContact(emailContact);
+    }
+
+    if(messageContactValue === '') {
+        setErrorForContact(messageContact, 'El mensaje no puede estar vacio');
+    } else{
+        setSuccessForContact(messageContact);
+    }
+}
+
+function setErrorForContact(input, message) {
+    const formControl = input.parentElement;
+    const small = formControl.querySelector('small');
+
+    small.innerText = message;
+}
+
+function setSuccessForContact() {
+    // enviar formulario si todos los campos estan bien //
+    if (nameContact.value !== '' && emailContact.value !== '' && messageContact.value !== '' && isEmail(emailContact.value)) {
+        formContact.submit();
+    }
+}
 

@@ -261,3 +261,8 @@ small{
 .success{
     font-size: 0;
 }
+.alert-danger p{
+    color: #f13f3f;
+    font-size: 2rem;
+    margin: 0;
+}

@@ -14,15 +14,19 @@
         <div class="settings__pr settings__pr--active">
             <h2>Welcome {{ session['username'] }}</h2>
             <p>Here you can change the settings of the application</p>
+            <div class="alert" role="alert">
+                <p class="alert-danger">{{ error }}</p>
+                <p class="alert-success">{{ success }}</p>
+            </div>
         </div>
         <div class="settings__api settings__api-api">
             <p>Open Ia - Api</p>
             <form method="post" class="settings__form" action="/admin/settings/api">
                 <label class="settings__label">
                     <p>Please enter your Api-Key</p>
-                    <input type="text" name="api" placeholder="Api">
+                    <input type="text" name="api" placeholder="Api" id="api">
                 </label>
-                <button type="submit" value="Save">Save</button>
+                <button type="submit" value="Save" class="enviar">Save</button>
             </form>
         </div>
         <div class="settings__api settings__api-web">

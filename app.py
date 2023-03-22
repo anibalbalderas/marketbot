@@ -11,6 +11,8 @@ from werkzeug.security import generate_password_hash
 from flask import request
 from bs4 import BeautifulSoup
 from twilio.rest import Client
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # para poder usar sesiones
@@ -55,9 +57,11 @@ def login():
         cur.execute("SELECT * FROM users WHERE username = %s", (username,))
         data = cur.fetchone()
         cur.close()
-        # si no hay datos
+        # si el usuario existe pero la contraseña no coincide #
+        if data is not None and not check_password_hash(data[1], password):
+            return render_template('sitio/login.html', error='Wrong password')
         if data is None:
-            return render_template('sitio/login.html')
+            return render_template('sitio/login.html', error='User not found')
         # si hay datos
         passwordhash = data[1]
         # comparar datos
@@ -73,6 +77,20 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
+        # verificar que el usuario no exista #
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+        data = cur.fetchone()
+        cur.close()
+        if data is not None:
+            return render_template('sitio/register.html', error='User already registered')
+        # verificar que el email no exista #
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+        data = cur.fetchone()
+        cur.close()
+        if data is not None:
+            return render_template('sitio/register.html', error='Email already registered')
         password = request.form['password']
         passwordhash = generate_password_hash(password)
         cur = mysql.connection.cursor()
@@ -90,10 +108,26 @@ def logout():
     return render_template('sitio/index.html')
 
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if 'logged' in session:
-        return render_template('admin/index.html')
+        username = session['username']
+        if request.method == 'POST':
+            name = request.form['name']
+            email = request.form['email']
+            textarea = request.form['textarea']
+            message = Mail(
+                from_email=email,
+                to_emails='aniballeguizamobalderas@gmail.com',
+                subject=name,
+                html_content=textarea
+            )
+            try:
+                sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+                response = sg.send(message)
+            except Exception as e:
+                print(e)
+        return render_template('admin/index.html', username=username)
     return render_template('sitio/index.html')
 
 
@@ -126,25 +160,26 @@ def chatbot():
         pyr = cur.fetchall()
         cur.close()
         cur = mysql.connection.cursor()
-        cur.execute("SELECT db FROM sites WHERE username = %s AND db REGEXP %s",
+        cur.execute("SELECT db FROM sites WHERE username = %s AND db REGEXP %s ORDER BY id DESC LIMIT 2",
                     (username, '|'.join(questiondb.split())))
         textsite = cur.fetchall()
         cur.close()
-        # Convertir a string y eliminar palabras iguales
+        # Convertir a string #
         textsite = str(textsite)
+        if textsite == '()':
+            textsite = ' '
         # quitar /n y /t #
         textsite = textsite.replace('\\n', ' ')
         textsite = textsite.replace('\\t', ' ')
         # quitar espacios dobles #
         textsite = re.sub(' +', ' ', textsite)
-        # quitar palabras repetidas #
-        textsite = ' '.join(dict.fromkeys(textsite.split()))
         # quitar palabras de menos de 3 letras #
         textsite = ' '.join([w for w in textsite.split() if len(w) > 3])
         # quitar palabras de mas de 15 letras #
         textsite = ' '.join([w for w in textsite.split() if len(w) < 15])
         # generar pregunta #
-        prompt = f"{textsite}\n{pyr}\n{question}\n"
+        print(textsite)
+        prompt = f"{pyr}\n{textsite}\n{question}\n"
         # generar respuesta #
         response = openai.Completion.create(
             model='text-davinci-003',
@@ -203,13 +238,31 @@ def key():
     if 'logged' in session:
         if request.method == 'POST':
             api = request.form['api']
+            if api == '':
+                return render_template('admin/settings.html', error='Can´t be empty')
+            if len(api) < 20:
+                return render_template('admin/settings.html', error='The key is too short')
             username = session['username']
+            # verificar si ya existe una clave #
             cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO claves (username, openai) VALUES (%s, %s)",
-                        (username, api))
-            mysql.connection.commit()
+            cur.execute("SELECT openai FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+            data = cur.fetchone()
             cur.close()
-            return render_template('admin/settings.html')
+            if data is None:
+                # guardar clave #
+                cur = mysql.connection.cursor()
+                cur.execute("INSERT INTO claves (username, openai) VALUES (%s, %s)",
+                            (username, api))
+                mysql.connection.commit()
+                cur.close()
+                return render_template('admin/settings.html', success='Key saved')
+            if data is not None:
+                # actualizar clave #
+                cur = mysql.connection.cursor()
+                cur.execute("UPDATE claves SET openai = %s WHERE username = %s", (api, username))
+                mysql.connection.commit()
+                cur.close()
+                return render_template('admin/settings.html', success='Key updated')
     return render_template('sitio/index.html')
 
 
@@ -217,8 +270,24 @@ def key():
 def web():
     if 'logged' in session:
         if request.method == 'POST':
-            web = request.form['web']
+            # verificar que tenga la api en la base de datos #
             username = session['username']
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT openai FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+            data = cur.fetchone()
+            cur.close()
+            if data is None:
+                return render_template('admin/settings.html', error='The key is not saved')
+            # guardar url de la web #
+            web = request.form['web']
+            if web == '':
+                return render_template('admin/settings.html', error='Can´t be empty')
+            # verificar si la url es valida #
+            try:
+                requests.get(web, timeout=5)
+            except requests.exceptions.ConnectionError:
+                return render_template('admin/settings.html', error='The url is not valid')
+            # guardar url en la base de datos #
             cur = mysql.connection.cursor()
             cur.execute("INSERT INTO sites (username, webpage) VALUES (%s, %s)",
                         (username, web))
@@ -260,38 +329,69 @@ def web():
                 # si hay error en la web #
                 if response.status_code != 200:
                     return render_template('admin/settings.html')
-            return render_template('admin/settings.html')
+            return render_template('admin/settings.html', success='Url saved')
     return render_template('sitio/index.html')
 
 
 @app.route('/admin/settings/tw', methods=['POST'])
 def tw():
     if 'logged' in session:
-        tw = request.form['twilio']
         username = session['username']
+        # verificar que tenga web en la base de datos #
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT webpage FROM sites WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+        data = cur.fetchone()
+        cur.close()
+        if data is None:
+            return render_template('admin/settings.html', error='You need to save a url first')
+        tw = request.form['twilio']
         twsk = request.form['twsk']
         numbertw = request.form['numbertw']
+        # verificar que los campos no esten vacios #
+        if tw == '' or twsk == '' or numbertw == '':
+            return render_template('admin/settings.html', error='Can´t be empty')
+        # verificar que la clave sea valida #
+        try:
+            client = Client(tw, twsk)
+            client.messages.create(
+                to=numbertw,
+                from_="+12058585858",
+                body="Hola, esto es una prueba de la api de twilio"
+            )
+        except:
+            return render_template('admin/settings.html', error='The key is not valid')
         # guardar clave del usuario en la base de datos #
         cur = mysql.connection.cursor()
         cur.execute("UPDATE claves SET twillio = %s, twsk = %s, numbertw = %s WHERE username = %s",
                     (tw, twsk, numbertw, username))
         mysql.connection.commit()
         cur.close()
-        return render_template('admin/settings.html')
+        return render_template('admin/settings.html', success='Key saved')
     return render_template('sitio/index.html')
 
 
-@app.route('/whatsapp', methods=['POST'])
-def whatsapp():
-    from_number = request.form['From']
-    message = request.form['Body']
-    username = 'anibalderas'
-    # enviar datos a ulr chatbot #
-    url = 'https://marketbot.herokuapp.com/admin/chatbot'
-    data = {'question': message, 'from_number': from_number, 'username': username}
-    # enviar datos a la url #
-    requests.post(url, data=data)
-    return 'OK'
+@app.route('/<username>/whatsapp', methods=['POST', 'GET'])
+def whatsapp(username):
+    # si no existe el usuario no se puede acceder #
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+    data = cur.fetchone()
+    cur.close()
+    if data is None:
+        return 'User not found'
+    else:
+        if request.method == 'POST':
+            # obtener datos #
+            from_number = request.form['From']
+            message = request.form['Body']
+            # enviar datos a ulr chatbot #
+            url = 'https://marketbot.herokuapp.com/admin/chatbot'
+            data = {'question': message, 'from_number': from_number, 'username': username}
+            # enviar datos a la url #
+            requests.post(url, data=data)
+            return 'OK'
+        else:
+            return 'OK'
 
 
 # obtener puerto #
