@@ -32,18 +32,30 @@ def index():
     return render_template('sitio/index.html')
 
 
-@app.route('/about')
-def about():
-    return render_template('sitio/about.html')
-
-
 @app.route('/services')
 def services():
     return render_template('sitio/services.html')
 
 
-@app.route('/contact')
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        textarea = request.form['textarea']
+        message = Mail(
+            from_email=email,
+            to_emails='aniballeguizamobalderas@gmail.com',
+            subject=name,
+            html_content=textarea
+        )
+        try:
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            response = sg.send(message)
+            return render_template('sitio/contact.html', success='Message sent')
+        except Exception as e:
+            print(e)
+            return render_template('sitio/contact.html', error='Message not sent')
     return render_template('sitio/contact.html')
 
 

@@ -1,5 +1,48 @@
 {% include 'sitio/templates/header.html' %}
 <body>
-    <h1>Contact</h1>
+<div class="frontContact__top">
+
+</div>
+<div class="frontContact__bot">
+    <div class="frontContact__map" style="-webkit-filter: grayscale(100%); filter: grayscale(100%);">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d230187.55064046764!2d-100.44318182881534!3d25.648728127237323!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86629531b437f8f5%3A0xa3d3d3ca6ac89894!2sMonterrey%2C%20N.L.!5e0!3m2!1ses!2smx!4v1679606550606!5m2!1ses!2smx" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    <div class="frontContact__meet">
+        <h2>Meet Us</h2>
+        <ul class="meetUs">
+            <li class="phone">
+                <a href="tel:+528122094187">+52 81-22-09-41-87</a>
+            </li>
+            <li class="mail">
+                <a href="mailto:aniballeguizamobalderas@gmail.com">aniballeguizamobalderas@gmail.com</a>
+            </li>
+            <li class="adr">
+                <a href="https://goo.gl/maps/GXrtherPSUybX5u28">Monterrey, Nuevo León, México</a>
+            </li>
+        </ul>
+    </div>
+    <div class="frontContact__pitch">
+        <h2>Pitch Us</h2>
+        <div class="alert" role="alert">
+            <p class="alert-danger" style="text-align: center">{{ error }}</p>
+            <p class="alert-success" style="text-align: center">{{ success }}</p>
+        </div>
+        <form action="" method="post" class="formPitch">
+            <label for="namePitch">
+                <input type="text" placeholder="Name" name="name" id="namePitch">
+                <small></small>
+            </label>
+            <label for="emailPitch">
+                <input type="text" placeholder="Email" name="email" id="emailPitch">
+                <small></small>
+            </label>
+            <label for="textareaPitch">
+                <textarea name="textarea" id="textareaPitch" cols="30" rows="10" placeholder="Message"></textarea>
+                <small></small>
+            </label>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
 </body>
 {% include 'sitio/templates/footer.html' %}

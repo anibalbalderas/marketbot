@@ -431,8 +431,10 @@ form input:focus {
     height: 100%;
     display: flex;
     align-items: center;
+    animation: fadeInUp 1s ease-in-out;
 }
 .releases__content{
+    animation: fadeInUp 2s ease-in-out;
     width: 95%;
     z-index: 2;
     border-radius: 2rem;
@@ -466,6 +468,7 @@ form input:focus {
     margin: 0;
 }
 .news{
+    display: none;
     margin: 0 auto;
     min-height: 100vh;
     background: rgb(255,255,255);
@@ -514,4 +517,23 @@ form input:focus {
 }
 .contact__button:hover{
     background-color: #2282b2;
+}
+
+.fadeInUp {
+    display: block;
+    animation-name: fadeInUp;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+/* animaciones */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(200px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

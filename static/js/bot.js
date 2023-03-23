@@ -245,3 +245,15 @@ function setSuccessForContact() {
     }
 }
 
+// animacion con scroll //
+
+const animacion2 = document.querySelectorAll('.news');
+
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 600) {
+        animacion2.forEach((item) => {
+            // añadir keyframe fadeInUp a la clase .releases__content //
+            item.classList.add('fadeInUp');
+        });
+    }
+});
