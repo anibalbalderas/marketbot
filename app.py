@@ -1,18 +1,20 @@
-import openai
-import re
 import os
+import re
+
+import openai
 import requests
-from flask import Flask
-from flask import render_template
-from flask_mysqldb import MySQL
-from flask import session
-from werkzeug.security import check_password_hash
-from werkzeug.security import generate_password_hash
-from flask import request
+import stripe
 from bs4 import BeautifulSoup
-from twilio.rest import Client
+from flask import Flask, redirect
+from flask import render_template
+from flask import request
+from flask import session
+from flask_mysqldb import MySQL
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from twilio.rest import Client
+from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # para poder usar sesiones
@@ -50,9 +52,15 @@ def contact():
             html_content=textarea
         )
         try:
-            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-            response = sg.send(message)
-            return render_template('sitio/contact.html', success='Message sent')
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT sendgrid FROM admin WHERE id = 1")
+            data = cur.fetchone()
+            cur.close()
+            if data is not None:
+                sendgrid = data[0]
+                sg = SendGridAPIClient(sendgrid)
+                response = sg.send(message)
+                return render_template('sitio/contact.html', success='Message sent')
         except Exception as e:
             print(e)
             return render_template('sitio/contact.html', error='Message not sent')
@@ -105,13 +113,47 @@ def register():
             return render_template('sitio/register.html', error='Email already registered')
         password = request.form['password']
         passwordhash = generate_password_hash(password)
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
-                    (username, email, passwordhash))
-        mysql.connection.commit()
-        cur.close()
-        return render_template('sitio/login.html')
+        # pagar con stripe #
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT stripesk FROM admin WHERE id = 1")
+            data = cur.fetchone()
+            cur.close()
+            if data is not None:
+                stripe.api_key = data[0]
+                session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[{
+                        'price': 'price_1MpDi7FZwBQ2lPrMBQzrnsHo',
+                        'quantity': 1
+                    }],
+                    mode='payment',
+                    success_url='https://marketbot.herokuapp.com/success' + '?session_user=' + username + '&session_email=' + email + '&session_password=' + passwordhash,
+                    cancel_url='https://marketbot.herokuapp.com/cancel'
+                )
+                return redirect(session.url, code=303)
+        except Exception as e:
+            print(e)
+            return render_template('sitio/register.html')
     return render_template('sitio/register.html')
+
+
+@app.route('/success')
+def success():
+    username = request.args.get('session_user')
+    email = request.args.get('session_email')
+    passwordhash = request.args.get('session_password')
+    cur = mysql.connection.cursor()
+    cur.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
+                (username, passwordhash, email))
+    mysql.connection.commit()
+    cur.close()
+    return redirect('https://marketbot.herokuapp.com/login', code=303)
+
+
+@app.route('/cancel')
+def cancel():
+    return redirect('https://marketbot.herokuapp.com/register', code=303)
 
 
 @app.route('/logout')
