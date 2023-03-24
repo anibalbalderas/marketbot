@@ -88,6 +88,28 @@ def login():
         if check_password_hash(passwordhash, password):
             session['username'] = username
             session['logged'] = True
+            # verificar suscripcion en stripe #
+            try:
+                cur = mysql.connection.cursor()
+                cur.execute("SELECT stripesk FROM admin WHERE id = 1")
+                data = cur.fetchone()
+                cur.close()
+                if data is not None:
+                    stripe.api_key = data[0]
+                    cur = mysql.connection.cursor()
+                    cur.execute("SELECT email FROM users WHERE username = %s", (username,))
+                    email = cur.fetchone()
+                    cur.close()
+                    customer = stripe.Customer.list(email=email[0])['data'][0]
+                    subscription = stripe.Subscription.list(customer=customer.id).data[0]
+                    if subscription.status == 'active' or subscription.status == 'trialing':
+                        return render_template('admin/index.html')
+                    else:
+                        print(subscription.status)
+                        return render_template('sitio/login.html', error='Subscription not active')
+            except Exception as e:
+                print(e, 'error')
+                return render_template('sitio/login.html', error='Subscription not active')
             return render_template('admin/index.html')
     return render_template('sitio/login.html')
 
