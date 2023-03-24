@@ -5,7 +5,7 @@ import openai
 import requests
 import stripe
 from bs4 import BeautifulSoup
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect
 from flask import render_template
 from flask import request
 from flask import session
@@ -113,6 +113,7 @@ def register():
             return render_template('sitio/register.html', error='Email already registered')
         password = request.form['password']
         passwordhash = generate_password_hash(password)
+        user = {'username': username, 'email': email, 'password': passwordhash}
         # pagar con stripe #
         try:
             cur = mysql.connection.cursor()
@@ -128,28 +129,51 @@ def register():
                         'quantity': 1
                     }],
                     mode='payment',
-                    success_url='https://marketbot.herokuapp.com/success',
+                    success_url='https://marketbot.herokuapp.com/success' + '?session_id={CHECKOUT_SESSION_ID}',
                     cancel_url='https://marketbot.herokuapp.com/cancel'
                 )
+                user['session'] = session.id
+                cur = mysql.connection.cursor()
+                cur.execute("INSERT INTO users2 (username, email, password, stripe_session_id) VALUES (%s, %s, %s, %s)",
+                            (username, email, passwordhash, session.id))
+                mysql.connection.commit()
+                cur.close()
                 return redirect(session.url, code=303)
         except Exception as e:
             print(e)
             return render_template('sitio/register.html')
-        pago_exitoso = True
-        if not pago_exitoso:
-            return render_template('sitio/register.html', error='Payment was not successful')
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
-                    (username, email, passwordhash))
-        mysql.connection.commit()
-        cur.close()
-        return redirect(url_for('login'))
     return render_template('sitio/register.html')
 
 
 @app.route('/success')
 def success():
-    return render_template('sitio/login.html')
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT stripesk FROM admin WHERE id = 1")
+    data = cur.fetchone()
+    cur.close()
+    stripe.api_key = data[0]
+    session_id = request.args.get('session_id')
+    session = stripe.checkout.Session.retrieve(session_id)
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users2 WHERE stripe_session_id = %s", (session_id,))
+    data = cur.fetchone()
+    cur.close()
+    if data is not None:
+        username = data[0]
+        email = data[2]
+        passwordhash = data[1]
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                    (username, email, passwordhash))
+        mysql.connection.commit()
+        cur.close()
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM users2 WHERE stripe_session_id = %s", (session_id,))
+        mysql.connection.commit()
+        cur.close()
+        return render_template('sitio/login.html', success='User registered')
+    else:
+        return render_template('sitio/register.html', error='User not registered')
 
 
 @app.route('/cancel')
@@ -178,7 +202,11 @@ def admin():
                 html_content=textarea
             )
             try:
-                sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+                cur = mysql.connection.cursor()
+                cur.execute("SELECT sendgrid FROM admin WHERE id = 1")
+                data = cur.fetchone()
+                cur.close()
+                sg = SendGridAPIClient(data[0])
                 response = sg.send(message)
             except Exception as e:
                 print(e)
