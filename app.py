@@ -5,7 +5,7 @@ import openai
 import requests
 import stripe
 from bs4 import BeautifulSoup
-from flask import Flask, redirect
+from flask import Flask, redirect, url_for
 from flask import render_template
 from flask import request
 from flask import session
@@ -128,32 +128,33 @@ def register():
                         'quantity': 1
                     }],
                     mode='payment',
-                    success_url='https://marketbot.herokuapp.com/success' + '?session_user=' + username + '&session_email=' + email + '&session_password=' + passwordhash,
+                    success_url='https://marketbot.herokuapp.com/success',
                     cancel_url='https://marketbot.herokuapp.com/cancel'
                 )
                 return redirect(session.url, code=303)
         except Exception as e:
             print(e)
             return render_template('sitio/register.html')
+        pago_exitoso = True
+        if not pago_exitoso:
+            return render_template('sitio/register.html', error='Payment was not successful')
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                    (username, email, passwordhash))
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('login'))
     return render_template('sitio/register.html')
 
 
-@app.route('/success?session_user=<username>&session_email=<email>&session_password=<passwordhash>')
+@app.route('/success')
 def success():
-    username = request.args.get('session_user')
-    email = request.args.get('session_email')
-    passwordhash = request.args.get('session_password')
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
-                (username, passwordhash, email))
-    mysql.connection.commit()
-    cur.close()
-    return redirect('https://marketbot.herokuapp.com/login', code=303)
+    return render_template('sitio/login.html')
 
 
 @app.route('/cancel')
 def cancel():
-    return redirect('https://marketbot.herokuapp.com/register', code=303)
+    return render_template('sitio/register.html')
 
 
 @app.route('/logout')
