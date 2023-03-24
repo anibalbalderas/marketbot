@@ -125,10 +125,10 @@ def register():
                 session = stripe.checkout.Session.create(
                     payment_method_types=['card'],
                     line_items=[{
-                        'price': 'price_1MpDi7FZwBQ2lPrMBQzrnsHo',
+                        'price': 'price_1Mp2MHFZwBQ2lPrM4xEUCPs6',
                         'quantity': 1
                     }],
-                    mode='payment',
+                    mode='suscription',
                     success_url='https://marketbot.herokuapp.com/success' + '?session_id={CHECKOUT_SESSION_ID}',
                     cancel_url='https://marketbot.herokuapp.com/cancel'
                 )
