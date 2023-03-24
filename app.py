@@ -138,7 +138,7 @@ def register():
     return render_template('sitio/register.html')
 
 
-@app.route('/success')
+@app.route('/success?session_user=<username>&session_email=<email>&session_password=<passwordhash>')
 def success():
     username = request.args.get('session_user')
     email = request.args.get('session_email')
