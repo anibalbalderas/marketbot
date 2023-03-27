@@ -158,11 +158,13 @@ menuBtn.addEventListener('click', () => {
 const settingsApi = document.querySelector('#api')
 const settingsWeb = document.querySelector('#webpage')
 const settingsTwilio = document.querySelector('#twilio')
+const settingsWordpress = document.querySelector('#wordpress')
 
 const settings1 = document.querySelector('.settings__api-api')
 const settings2 = document.querySelector('.settings__api-web')
 const settings4 = document.querySelector('.settings__api-tw')
 const settings5 = document.querySelector('.settings__pr')
+const settings6 = document.querySelector('.settings__api-word')
 
 if (settingsApi) {
     settingsApi.addEventListener('click', () => {
@@ -170,6 +172,7 @@ if (settingsApi) {
         settings2.classList.remove('settings__api-webpage--active')
         settings4.classList.remove('settings__api-twilio--active')
         settings5.classList.remove('settings__pr')
+        settings6.classList.remove('settings__api-word--active')
     })
 }
 
@@ -179,6 +182,7 @@ if (settingsWeb) {
         settings1.classList.remove('settings__api-api--active')
         settings4.classList.remove('settings__api-twilio--active')
         settings5.classList.remove('settings__pr')
+        settings6.classList.remove('settings__api-word--active')
     })
 }
 
@@ -187,6 +191,17 @@ if (settingsTwilio) {
         settings4.classList.add('settings__api-twilio--active')
         settings1.classList.remove('settings__api-api--active')
         settings2.classList.remove('settings__api-webpage--active')
+        settings5.classList.remove('settings__pr')
+        settings6.classList.remove('settings__api-word--active')
+    })
+}
+
+if (settingsWordpress) {
+    settingsWordpress.addEventListener('click', () => {
+        settings6.classList.add('settings__api-word--active')
+        settings1.classList.remove('settings__api-api--active')
+        settings2.classList.remove('settings__api-webpage--active')
+        settings4.classList.remove('settings__api-twilio--active')
         settings5.classList.remove('settings__pr')
     })
 }

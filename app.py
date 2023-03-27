@@ -1,9 +1,11 @@
 import os
 import re
+import time
 
 import openai
 import requests
 import stripe
+import json
 from bs4 import BeautifulSoup
 from flask import Flask, redirect
 from flask import render_template
@@ -497,6 +499,153 @@ def whatsapp(username):
             return 'OK'
         else:
             return 'OK'
+
+
+@app.route('/admin/posts', methods=['POST', 'GET'])
+def posts():
+    if 'logged' in session:
+        if request.method == 'POST':
+            # obtener datos #
+            username = session['username']
+            titulo = request.form['titulo']
+            if titulo == '':
+                return render_template('admin/posts.html', error='Can´t be empty')
+            if len(titulo) > 100:
+                return render_template('admin/posts.html', error='Title too long')
+            if len(titulo) < 10:
+                return render_template('admin/posts.html', error='Title too short')
+            featured_image_url = request.form['featured_image_url']
+            if featured_image_url == '':
+                return render_template('admin/posts.html', error='Can´t be empty')
+            # verificar que la url sea valida #
+            try:
+                response = requests.get(featured_image_url, timeout=5)
+                if response.status_code != 200:
+                    return render_template('admin/posts.html', error='The url is not valid')
+            except:
+                return render_template('admin/posts.html', error='The url is not valid')
+            # verificar que los campos no esten vacios #
+            if posts == '':
+                return render_template('admin/posts.html', error='Can´t be empty')
+            # leer key de openai #
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT openai FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+            key = cur.fetchone()
+            cur.close()
+            openai.api_key = key[0]
+            # leer datos de wordpress #
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT * FROM wordpress WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+            data = cur.fetchone()
+            cur.close()
+            # verificar que los datos de wordpress no esten vacios #
+            sitio = data[3]
+            if sitio is None:
+                return render_template('admin/posts.html', error='You need to save a wordpress url first')
+            loginId = data[1]
+            if loginId is None:
+                return render_template('admin/posts.html', error='You need to save a wordpress login id first')
+            password = data[2]
+            if password is None:
+                return render_template('admin/posts.html', error='You need to save a wordpress password first')
+            # generar prompt #
+            prompt = f"{'genera un post con buen SEO para wordpress con el titulo:'}\n{titulo}\n{'con subtitulos, parrafos y palabras importantes'}\n"
+            # generar respuesta #
+            response = openai.Completion.create(
+                model='text-davinci-003',
+                prompt=prompt,
+                temperature=0.3,
+                max_tokens=400,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0.6,
+            )
+            time.sleep(5)
+            # publicar contenido en wordpress #
+            response_text = response.choices[0].text
+            soup = BeautifulSoup(response_text, 'html.parser')
+            title = soup.h1.text
+            paragraphs = soup.find_all('p')
+            subtitles = soup.find_all('h2')
+            content = ""
+            for subtitle in subtitles:
+                content += f"<h2>{subtitle.text}</h2>"
+            for paragraph in paragraphs:
+                content += f"<p>{paragraph.text}</p>"
+            url = f'{sitio}/wp-json/wp/v2/posts'
+            headers = {'Content-Type': 'application/json'}
+            payload = {
+                'title': title.strip(),
+                'content': content.strip(),
+                'status': 'publish',
+                'featured_media': requests.post(featured_image_url).json().get('id')
+            }
+            auth = (loginId, password)
+            response = requests.post(url, headers=headers, auth=auth, data=json.dumps(payload))
+            # si hay error en la web #
+            if response.status_code != 201:
+                return render_template('admin/posts.html', error='Error publishing post')
+            else:
+                return render_template('admin/posts.html', success='Post published')
+        return render_template('admin/posts.html')
+    return render_template('sitio/index.html')
+
+
+@app.route('/admin/settings/word', methods=['POST'])
+def word():
+    if 'logged' in session:
+        # obtener datos #
+        username = session['username']
+        sitio = request.form['sitio']
+        loginId = request.form['loginId']
+        password = request.form['password']
+        # verificar que los campos no esten vacios #
+        if sitio == '':
+            return render_template('admin/settings.html', error='Can´t be empty')
+        else:
+            # verificar que la url sea valida #
+            try:
+                response = requests.get(sitio, timeout=5)
+                if response.status_code != 200:
+                    return render_template('admin/settings.html', error='The url is not valid')
+            except:
+                return render_template('admin/settings.html', error='The url is not valid')
+        if loginId == '':
+            return render_template('admin/settings.html', error='Can´t be empty')
+        if password == '':
+            return render_template('admin/settings.html', error='Can´t be empty')
+        # verificar usuario y contraseña #
+        url = f'{sitio}/wp-json/wp/v2/posts'
+        headers = {'Content-Type': 'application/json'}
+        payload = {
+            'title': 'test',
+            'content': 'test',
+            'status': 'publish'
+        }
+        auth = (loginId, password)
+        response = requests.post(url, headers=headers, auth=auth, data=json.dumps(payload))
+        if response.status_code != 201:
+            return render_template('admin/settings.html', error='Invalid user or password')
+        # verificar que no tenga nada en la base de datos #
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM wordpress WHERE username = %s ORDER BY id DESC LIMIT 1", (username,))
+        data = cur.fetchone()
+        cur.close()
+        if data is not None:
+            # actualizar datos #
+            cur = mysql.connection.cursor()
+            cur.execute("UPDATE wordpress SET site = %s, worduser = %s, wordpass = %s WHERE username = %s", (sitio, loginId, password, username))
+            mysql.connection.commit()
+            cur.close()
+            return render_template('admin/settings.html', success='Wordpress updated')
+        else:
+            # guardar datos #
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO wordpress (username, site, worduser, wordpass) VALUES (%s, %s, %s, %s)", (username, sitio, loginId, password))
+            mysql.connection.commit()
+            cur.close()
+        return render_template('admin/settings.html', success='Wordpress saved')
+    return render_template('sitio/index.html')
 
 
 # obtener puerto #

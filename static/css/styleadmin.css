@@ -350,6 +350,9 @@ form input:focus {
 .settings__api-api--active{
     display: block;
 }
+.settings__api-word--active{
+    display: block;
+}
 .settings__api-webpage--active{
     display: block;
 }
@@ -524,6 +527,13 @@ form input:focus {
     animation-name: fadeInUp;
     animation-duration: 1s;
     animation-fill-mode: both;
+}
+.wordpress{
+    height: 86vh;
+}
+.wordpress__content{
+    margin: 0 auto;
+    width: 80%;
 }
 
 /* animaciones */
