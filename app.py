@@ -156,7 +156,7 @@ def register():
                         'price': 'price_1Mp2MHFZwBQ2lPrM4xEUCPs6',
                         'quantity': 1
                     }],
-                    mode='suscription',
+                    mode='subscription',
                     success_url='https://marketbot.herokuapp.com/success' + '?session_id={CHECKOUT_SESSION_ID}',
                     cancel_url='https://marketbot.herokuapp.com/cancel'
                 )
