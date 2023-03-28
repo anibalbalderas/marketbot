@@ -1,0 +1,11 @@
+{% block content %}
+    <h1>Generar imagen</h1>
+    <form method="post">
+        <label for="imagen">Texto:</label>
+        <input type="text" id="imagen" name="imagen">
+        <button type="submit">Generar imagen</button>
+    </form>
+    {% if image_url %}
+        <img src="{{ image_url }}" alt="Imagen generada">
+    {% endif %}
+{% endblock %}

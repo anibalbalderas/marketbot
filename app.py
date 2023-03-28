@@ -1,6 +1,9 @@
 import os
 import re
 import time
+import urllib
+import uuid
+
 import openai
 import requests
 import stripe
@@ -23,7 +26,7 @@ from google.ads.googleads.errors import GoogleAdsException
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # para poder usar sesiones
 
-app.config['UPLOAD_FOLDER'] = 'C:/Users/Balderas/Downloads/marketbot-main/upload/ads'
+app.config['UPLOAD_FOLDER'] = '/upload/ads'
 
 app.config['MYSQL_HOST'] = 'gblm5z.stackhero-network.com'
 app.config['MYSQL_USER'] = 'root'
@@ -518,16 +521,6 @@ def posts():
                 return render_template('admin/posts.html', error='Title too long')
             if len(titulo) < 10:
                 return render_template('admin/posts.html', error='Title too short')
-            featured_image_url = request.form['featured_image_url']
-            if featured_image_url == '':
-                return render_template('admin/posts.html', error='Can´t be empty')
-            # verificar que la url sea valida #
-            try:
-                response = requests.get(featured_image_url, timeout=5)
-                if response.status_code != 200:
-                    return render_template('admin/posts.html', error='The url is not valid')
-            except:
-                return render_template('admin/posts.html', error='The url is not valid')
             # verificar que los campos no esten vacios #
             if posts == '':
                 return render_template('admin/posts.html', error='Can´t be empty')
@@ -553,7 +546,7 @@ def posts():
             if password is None:
                 return render_template('admin/posts.html', error='You need to save a wordpress password first')
             # generar prompt #
-            prompt = f"{'genera un post con buen SEO para wordpress con el titulo:'}\n{titulo}\n{'con subtitulos, parrafos y palabras importantes'}\n"
+            prompt = f"{'genera un post con buen SEO y extenso para wordpress con el titulo:'}\n{titulo}\n{'con subtitulos, parrafos y palabras importantes'}\n"
             # generar respuesta #
             response = openai.Completion.create(
                 model='text-davinci-003',
@@ -572,25 +565,34 @@ def posts():
             paragraphs = soup.find_all('p')
             subtitles = soup.find_all('h2')
             content = ""
+            # publicar post #
             for subtitle in subtitles:
                 content += f"<h2>{subtitle.text}</h2>"
             for paragraph in paragraphs:
                 content += f"<p>{paragraph.text}</p>"
             url = f'{sitio}/wp-json/wp/v2/posts'
-            headers = {'Content-Type': 'application/json'}
+            # publicar post #
             payload = {
                 'title': title.strip(),
                 'content': content.strip(),
                 'status': 'publish',
-                'featured_media': requests.post(featured_image_url).json().get('id')
             }
             auth = (loginId, password)
+            headers = {'Content-Type': 'application/json'}
             response = requests.post(url, headers=headers, auth=auth, data=json.dumps(payload))
             # si hay error en la web #
             if response.status_code != 201:
                 return render_template('admin/posts.html', error='Error publishing post')
             else:
-                return render_template('admin/posts.html', success='Post published')
+                # generar imagen destacada #
+                responseimg = openai.Image.create(
+                    prompt=title,
+                    n=2,
+                    size="1024x1024"
+                )
+                image_data = responseimg['data'][0]
+                image_url = image_data['url']
+                return render_template('admin/posts.html', success='Post published', image_url=image_url)
         return render_template('admin/posts.html')
     return render_template('sitio/index.html')
 

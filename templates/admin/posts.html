@@ -1,25 +1,26 @@
 {% include 'admin/templates/header.html' %}
 <body>
 <div class="wordpress">
-    <div>
-        {{ success }}
-        {{ error }}
+    <div class="alert" role="alert" style="padding-top: 2rem">
+        <p class="alert-danger">{{ error }}</p>
+        <p class="alert-success">{{ success }}</p>
     </div>
     <div class="wordpress__content">
         <h1>Wordpress</h1>
         <p style="color: #f13f3f; text-align: center">You need to have completed all the steps in the configuration area</p>
         <p style="text-align: center">Here you can create a new post in your WordPress blog</p>
+        <div class="contenedor">
+            {% if image_url %}
+                <img style="height: 500px; width: auto; margin: 0 auto" src="{{ image_url }}" alt="Imagen generada">
+                <p style="text-align: center; color: #66ccff">Download de image and put in the post</p>
+            {% endif %}
+        </div>
         <p>Remember to add the title</p>
         <p>Example: <span style="color: #4691b4">The importance of pigment color in microblading</span></p>
-        <p>Remember to add the featured image url</p>
-        <p>Example: <span style="color: #4691b4">https://www.example.com/wp-content/uploads/2020/01/featured-image.jpg</span></p>
         <div class="wordpress__form">
             <form method="post">
                 <label>
                     <input type="text" name="titulo" placeholder="title">
-                </label>
-                <label>
-                    <input type="text" name="featured_image_url" placeholder="featured image url">
                 </label>
                 <input style="cursor: pointer; background-color: #66ccff" type="submit" name="submit" value="Submit">
             </form>
