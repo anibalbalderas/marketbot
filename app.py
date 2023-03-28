@@ -1,7 +1,6 @@
 import os
 import re
 import time
-
 import openai
 import requests
 import stripe
@@ -17,9 +16,14 @@ from sendgrid.helpers.mail import Mail
 from twilio.rest import Client
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
+from google.ads.googleads.client import GoogleAdsClient
+from google.ads.googleads.errors import GoogleAdsException
 
 app = Flask(__name__)
 app.secret_key = 'mysecretkey'  # para poder usar sesiones
+
+app.config['UPLOAD_FOLDER'] = 'C:/Users/Balderas/Downloads/marketbot-main/upload/ads'
 
 app.config['MYSQL_HOST'] = 'gblm5z.stackhero-network.com'
 app.config['MYSQL_USER'] = 'root'
@@ -634,17 +638,93 @@ def word():
         if data is not None:
             # actualizar datos #
             cur = mysql.connection.cursor()
-            cur.execute("UPDATE wordpress SET site = %s, worduser = %s, wordpass = %s WHERE username = %s", (sitio, loginId, password, username))
+            cur.execute("UPDATE wordpress SET site = %s, worduser = %s, wordpass = %s WHERE username = %s",
+                        (sitio, loginId, password, username))
             mysql.connection.commit()
             cur.close()
             return render_template('admin/settings.html', success='Wordpress updated')
         else:
             # guardar datos #
             cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO wordpress (username, site, worduser, wordpass) VALUES (%s, %s, %s, %s)", (username, sitio, loginId, password))
+            cur.execute("INSERT INTO wordpress (username, site, worduser, wordpass) VALUES (%s, %s, %s, %s)",
+                        (username, sitio, loginId, password))
             mysql.connection.commit()
             cur.close()
         return render_template('admin/settings.html', success='Wordpress saved')
+    return render_template('sitio/index.html')
+
+
+@app.route('/admin/adwords', methods=['POST', 'GET'])
+def adwords():
+    if 'logged' in session:
+        if request.method == 'POST':
+            campaign_id = request.form['campaign_id']
+            config_file = request.files['config_file']
+            config_file.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(config_file.filename)))
+            client = GoogleAdsClient.load_from_storage(
+                os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(config_file.filename)))
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT webpage FROM sites WHERE username = %s ORDER BY id DESC LIMIT 1",
+                        (session['username'],))
+            data = cur.fetchone()
+            cur.close()
+            client = GoogleAdsClient.load_from_storage(config_file)
+            url = data[0]
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT openai FROM claves WHERE username = %s ORDER BY id DESC LIMIT 1",
+                        (session['username'],))
+            data = cur.fetchone()
+            cur.close()
+            openai.api_key = data[0]
+            model_engine = "text-davinci-002"
+            prompt = f"Obtener descripción del producto o servicio a partir de la URL: {url}"
+            response = openai.Completion.create(
+                engine=model_engine,
+                prompt=prompt,
+                max_tokens=1024,
+                n=1,
+                stop=None,
+                temperature=0.5,
+            )
+            description = response.choices[0].text.strip()
+            prompt = (f"Genera ideas de anuncios para un producto o servicio.\n"
+                      f"{description}\n"
+                      f"Palabras clave:\n"
+                      f"Objetivos:")
+            response = openai.Completion.create(
+                engine=model_engine,
+                prompt=prompt,
+                max_tokens=1024,
+                n=1,
+                stop=None,
+                temperature=0.5,
+            )
+            idea = response.choices[0].text.strip()
+            palabras_clave = re.findall(r"Palabras clave:(.*)Objetivos:", idea, re.DOTALL)
+            objetivos = re.findall(r"Objetivos:(.*)", idea, re.DOTALL)
+            ad_group_service = client.service.ad_group_service
+            ad_group_operations = []
+            for keyword in palabras_clave:
+                ad_group_operation = client.service.ad_group_operation
+                ad_group = ad_group_operation.create
+                ad_group.name = 'Grupo de anuncios de ' + keyword
+                ad_group.campaign = client.service.campaign_path(client.customer_id, campaign_id)
+                ad_group.status = client.enums.ad_group_status.AdGroupStatus.ENABLED
+                ad_group.type_ = client.enums.ad_group_type.AdGroupType.SEARCH_STANDARD
+                ad_group.cpc_bid_micros = 10000000
+                keyword_ad_group_criterion = ad_group_operation.create.ad_group_criterion
+                keyword_ad_group_criterion.keyword.text = keyword
+                keyword_ad_group_criterion.keyword.match_type = client.enums.keyword_match_type.KeywordMatchType.EXACT
+                ad_group_operations.append(ad_group_operation)
+            try:
+                response = ad_group_service.mutate_ad_groups(customer_id=client.customer_id,
+                                                             operations=ad_group_operations)
+                for result in response.results:
+                    print(f"Grupo de anuncios creado con ID: {result.resource_name}")
+            except GoogleAdsException as ex:
+                print(f"Ocurrió un error al crear los grupos de anuncios: {ex}")
+            return render_template('admin/adwords.html', success='Adwords saved')
+        return render_template('admin/adwords.html')
     return render_template('sitio/index.html')
 
 

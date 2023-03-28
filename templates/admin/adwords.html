@@ -1,0 +1,13 @@
+{% include 'admin/templates/header.html' %}
+<form action="{{ url_for('adwords') }}" method="POST" enctype="multipart/form-data">
+  <div class="form-group">
+    <label for="campaign_id">Campaign ID</label>
+    <input type="text" class="form-control" id="campaign_id" name="campaign_id">
+  </div>
+  <div class="form-group">
+    <label for="config_file">Google Ads Configuration File</label>
+    <input type="file" class="form-control-file" id="config_file" name="config_file">
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% include 'admin/templates/header.html' %}
