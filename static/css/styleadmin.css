@@ -93,6 +93,10 @@ footer a{
     font-size: 2rem;
     padding: 0 1rem;
 }
+.menu__nav a:last-child{
+    background-color: #66ccff;
+    border-radius: 2rem;
+}
 .menu__nav a:hover{
     color: #66ccff;
 }
@@ -534,6 +538,31 @@ form input:focus {
 .wordpress__content{
     margin: 0 auto;
     width: 80%;
+}
+.adsgoogle{
+    margin: 0 auto;
+    width: 80%;
+    height: 42vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.btngoogle{
+    margin: 0 auto;
+    width: 60%;
+}
+.inputgoogle{
+    margin: 0 auto;
+    width: 100%;
+}
+.inputarch{
+    padding-bottom: 2rem;
+}
+.release img{
+    width: 100%;
+    height: 100%;
+    border-radius: 2rem;
 }
 
 /* animaciones */

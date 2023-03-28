@@ -1,13 +1,24 @@
 {% include 'admin/templates/header.html' %}
-<form action="{{ url_for('adwords') }}" method="POST" enctype="multipart/form-data">
-  <div class="form-group">
-    <label for="campaign_id">Campaign ID</label>
-    <input type="text" class="form-control" id="campaign_id" name="campaign_id">
-  </div>
-  <div class="form-group">
-    <label for="config_file">Google Ads Configuration File</label>
-    <input type="file" class="form-control-file" id="config_file" name="config_file">
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-{% include 'admin/templates/header.html' %}
+<div class="contenedor infogoogle">
+    <h1>Google Ads</h1>
+    <p>On this page you can configure your Google campaign with keywords with AI, we extract the information from your web page and generate keywords based on the information from your web page.</p>
+    <p>For this you must have a Google Ads account and a campaign created, you must also have a configuration file from Google Ads, you can download it from the Google Ads account.</p>
+    <p>Once you have the configuration file, you must upload it to the form below and enter the campaign ID, then click on the submit button.</p>
+    <p>Once the configuration file is uploaded, the keywords will be generated and the campaign will be updated with the new keywords.</p>
+    <p>It is important to note that the keywords will be generated based on the information of your web page, so it is important that your web page has a good amount of information.</p>
+    <p>It is also important to note that the keywords will be generated in English, so it is important that your web page is in English.</p>
+</div>
+<div class="contenedor adsgoogle">
+    <form action="{{ url_for('adwords') }}" method="POST" enctype="multipart/form-data">
+        <div class="inputgoogle">
+            <label for="campaign_id" style="color: #0a0e13">Campaign ID</label>
+            <input type="text" id="campaign_id" name="campaign_id" placeholder="campaign id">
+        </div>
+        <div class="inputarch">
+            <label for="config_file" style="color: #0a0e13">Google Ads Configuration File</label>
+            <input type="file" class="form-control-file" id="config_file" name="config_file">
+        </div>
+        <button type="submit" class="btngoogle">Submit</button>
+    </form>
+</div>
+{% include 'admin/templates/footer.html' %}

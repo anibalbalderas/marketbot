@@ -728,6 +728,11 @@ def adwords():
     return render_template('sitio/index.html')
 
 
+@app.route('/information', methods=['GET'])
+def information():
+    return render_template('sitio/information.html')
+
+
 # obtener puerto #
 port = int(os.environ.get('PORT', 8080))
 # iniciar servidor #
